@@ -1,0 +1,56 @@
+local Players = game:GetService("Players")
+local WhitelistCheck = game:GetService("ReplicatedStorage"):WaitForChild("WhitelistCheck")
+local ComtacsMainService = game:GetService("ReplicatedStorage"):WaitForChild("ComtacsMainService")
+
+local function Update(p1)
+	for _, sound in ipairs(game.Workspace:GetDescendants()) do
+		if sound:IsA("Sound") and p1 == "SOUNDON" then
+			local earproFX = script.EarproFX:Clone()
+			earproFX.Parent = sound
+		else
+			local fx = sound:FindFirstChild("EarproFX")
+			if fx then
+				fx:Destroy()
+			end
+		end
+	end
+end
+
+local function OnCharacterAdded(character)
+	character:WaitForChild("HumanoidRootPart")
+
+	wait(2)
+
+	local earpro = character:FindFirstChild("Earpro")
+
+	WhitelistCheck.OnClientEvent:Connect(function(isWhitelisted)
+		if not isWhitelisted then
+			local player = Players.LocalPlayer
+			player:Kick("You are not whitelisted to use this EarPro product.")
+			warn("EarPro Whitelist not found.")
+		end
+	end)
+
+	earpro.Changed:Connect(function()
+		Update(earpro.Value and "SOUNDON" or "SOUNDOFF")
+	end)
+
+	Update(earpro.Value and "SOUNDON" or "SOUNDOFF")
+end
+
+Players.LocalPlayer.CharacterAdded:Connect(OnCharacterAdded)
+
+game.Workspace.DescendantAdded:Connect(function(descendant)
+	if descendant:IsA("Sound") then
+		local earpro = Players.LocalPlayer.Character:FindFirstChild("Earpro")
+		if earpro and earpro.Value == true then
+			local earproFX = descendant:FindFirstChild("EarproFX")
+			if not earproFX then
+				earproFX = script.EarproFX:Clone()
+				earproFX.Parent = descendant
+			end
+		end
+	end
+end)
+
+warn("EarPro by DEA1H_SAT")
